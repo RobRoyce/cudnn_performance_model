@@ -1,66 +1,53 @@
-#include csv
 import csv
 
 
 def generate_deepbench_convolution(
-        width,
-        height,
-        channels,
-        batch,
-        filter_cubes,
-        filter_width,
-        filter_height,
-        padw,
-        padh,
-        stridew,
-        strideh
-):
-    # w, h, c, n, k, filter_w(s), filter_h(r), pad_w, pad_h, wstride, hstride
-
-    with open('config/conv_problems.h', 'w') as file:
-        file.write('''std::vector <std::tuple<unsigned int, unsigned int, unsigned int, unsigned int,unsigned int, unsigned int, unsigned int,unsigned int, unsigned int, unsigned int, unsigned int>> training_set = {std::make_tuple(14, 14, 128, 8, 256, 3, 3, 1, 1, 1, 1),};\nstd::vector <std::tuple<unsigned int, unsigned int, unsigned int, unsigned int,unsigned int, unsigned int, unsigned int,unsigned int, unsigned int, unsigned int, unsigned int>> inference_server_set = {\n''')
+        width, height, channels, batch,
+        filter_cubes, filter_width, padw, padh,
+        stridew, strideh):
+    with open('config/cudnn_conv_params.csv', 'w') as file:
         for w, h in zip(width, height):
             for c in channels:
                 for n in batch:
                     for k in filter_cubes:
                         for s in filter_width:
-                            for r in filter_height:
-                                for pw in padw:
-                                    for ph in padh:
-                                        for sw in stridew:
-                                            for sh in strideh:
-                                                file.write(f'std::make_tuple({w}, {h}, {c}, {n}, {k}, {s}, {r}, {pw}, {ph}, {sw}, {sh}),\n')
-        file.write('std::make_tuple(1,1,1,1,1,1,1,1,1,1,1)};\n')
-        file.write('''std::vector <std::tuple<unsigned int, unsigned int, unsigned int, unsigned int,unsigned int, unsigned int, unsigned int,unsigned int, unsigned int, unsigned int, unsigned int>> inference_device_set = {std::make_tuple(224, 224, 64, 1, 64, 3, 3, 1, 1, 1, 1)};''')
+                            for pw in padw:
+                                for ph in padh:
+                                    for sw in stridew:
+                                        for sh in strideh:
+                                            file.write(f'{w},{h},{c},{n},{k},{s},{s},{pw},{ph},{sw},{sh}\n')
 
 
-def generate_deepbench_gemm():
-    pass
+def generate_deepbench_gemm(inputs, batch, outputs, a_t, b_t):
+    with open('config/cudnn_gemm_params.csv', 'w') as file:
+        for i in inputs:
+            for b in batch:
+                for o in outputs:
+                    for a in a_t:
+                        for aa in b_t:
+                            file.write(f'{i},{b},{o},{a},{aa}\n')
 
 
 if __name__ == '__main__':
-    width = [16 << i for i in range(7)]
-    height = [16 << i for i in range(7)]
-    channels = [1 << i for i in range(9)]
-    batch = [1 << i for i in range(5)]
+    # Generate Conv Parameters
+    width = [16 << i for i in range(8)]
+    height = [16 << i for i in range(8)]
+    channels = [1 << i for i in range(7)]
+    batch = [1 << i for i in range(6)]
     filter_cubes = [1 << i for i in range(7)]
-    filter_width = [2, 3, 4, 5]
-    filter_height = [2, 3, 4, 5]
-    padw = [1]
-    padh = [1]
-    stridew = [1]
-    strideh = [1]
-
+    filter_width = [3, 4, 5]
+    padw = [1, 2]
+    padh = [1, 2]
+    stridew = [1, 2]
+    strideh = [1, 2]
     generate_deepbench_convolution(
-        width,
-        height,
-        channels,
-        batch,
-        filter_cubes,
-        filter_width,
-        filter_height,
-        padw,
-        padh,
-        stridew,
-        strideh
-    )
+        width, height, channels, batch,
+        filter_cubes, filter_width, padw, padh,
+        stridew, strideh)
+
+    # Generate GEMM Parameters
+    inputs = [16 << i for i in range(19)]
+    batch = [1 << i for i in range(6)]
+    outputs = [1 << i for i in range(19)]
+    a_t = [0, 1]
+    generate_deepbench_gemm(inputs, batch, outputs, a_t, a_t)
