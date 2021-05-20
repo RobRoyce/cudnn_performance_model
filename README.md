@@ -1,4 +1,4 @@
-# cudnn_performance_model
+# cuDNN Performance Model
 
 This project is based on an assignment for UCLA's graduate-level course -- Current Topics in Computer Science: System Design/Architecture: Learning Machines.
 
